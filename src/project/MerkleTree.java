@@ -33,6 +33,13 @@ public class MerkleTree {
 
     private void createMT() {
 
+        ArrayList<String> chunksPaths = this.readAndParsePaths();
+
+        
+
+        for(String path: chunksPaths) {
+
+        }
     }
 
     private ArrayList<String> readAndParsePaths() {
