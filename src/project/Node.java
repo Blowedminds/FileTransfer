@@ -22,16 +22,12 @@ public class Node {
         return this.left;
     }
 
-    public void setLeft(Node left) {
-        this.left = left;
-    }
-
     public Node getRight() {
         return this.right;
     }
 
-    public void setRight(Node right) {
-        this.right = right;
+    public void setChildren(Node leftNode, Node rightNode) {
+        this.left = leftNode;
+        this.right = rightNode;
     }
-
 }
