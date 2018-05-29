@@ -14,8 +14,8 @@ public class Main {
 		String hash = m0.getRoot().getLeft().getRight().getData();
 		System.out.println(hash);
 
-//		boolean valid = m0.checkAuthenticity("sample/white_walkermeta.txt");
-//		System.out.println(valid);
+		boolean valid = m0.checkAuthenticity("data/9meta.txt");
+		System.out.println(valid);
 //
 //		// The following just is an example for you to see the usage.
 //		// Although there is none in reality, assume that there are two corrupt chunks in this example.

@@ -27,7 +27,23 @@ public class MerkleTree {
     }
 
     public boolean checkAuthenticity(String trustedSource) {
-        return false;
+        Queue<String> chunksHash = this.readAndParseLines(trustedSource);
+
+        Queue<Node> queue = new LinkedList<>();
+
+        queue.add(this.root);
+
+        while(!queue.isEmpty()) {
+
+            Node node = queue.remove();
+
+            if(!node.getData().equals(chunksHash.poll())) return false;
+
+            if(node.getLeft() != null) queue.add(node.getLeft());
+            if(node.getRight() != null) queue.add(node.getRight());
+        }
+
+        return true;
     }
 
     public ArrayList<Stack<String>> findCorruptChunks(String metaFile) {
@@ -36,12 +52,12 @@ public class MerkleTree {
 
     private void createMT() {
 
-        ArrayList<String> chunksPaths = this.readAndParsePaths();
+        Queue<String> chunksPaths = this.readAndParseLines(this.chunksPath);
 
         Queue<Node> hashedChunks = new LinkedList<>();
 
-        for (String path : chunksPaths) {
-            hashedChunks.add(new Node(this.hashFile(path)));
+        while(chunksPaths.size() > 0) {
+            hashedChunks.add(new Node(this.hashFile(chunksPaths.poll())));
         }
 
         this.root = this.aggregateNodes(hashedChunks);
@@ -94,11 +110,11 @@ public class MerkleTree {
         return "";
     }
 
-    private ArrayList<String> readAndParsePaths() {
+    private Queue<String> readAndParseLines(String path) {
 
-        BufferedReader reader = this.readFile(this.chunksPath);
+        BufferedReader reader = this.readFile(path);
 
-        ArrayList<String> paths = new ArrayList<>();
+        Queue<String> paths = new LinkedList<>();
 
         if(reader == null) {
             return paths;
@@ -111,7 +127,7 @@ public class MerkleTree {
         }
 
         catch (IOException e) {
-            System.out.println("While reading paths, file cannot be read");
+            System.out.println("While reading opening file an error occured");
         }
 
         return paths;
