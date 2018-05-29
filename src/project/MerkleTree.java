@@ -22,45 +22,76 @@ public class MerkleTree {
         this.createMT();
     }
 
+    private void createMT() {
+
+        Queue<String> chunksPaths = FileHandler.readAndParseLines(this.chunksPath);
+
+        Queue<Node> hashedChunks = FileHandler.hashFiles(chunksPaths);
+
+        this.root = this.aggregateNodes(hashedChunks);
+    }
+
     public Node getRoot() {
         return this.root;
     }
 
     public boolean checkAuthenticity(String trustedSource) {
-        Queue<String> chunksHash = this.readAndParseLines(trustedSource);
 
-        Queue<Node> queue = new LinkedList<>();
-
-        queue.add(this.root);
-
-        while(!queue.isEmpty()) {
-
-            Node node = queue.remove();
-
-            if(!node.getData().equals(chunksHash.poll())) return false;
-
-            if(node.getLeft() != null) queue.add(node.getLeft());
-            if(node.getRight() != null) queue.add(node.getRight());
-        }
-
-        return true;
+        return this.root.getData().equals(FileHandler.readAndParseLines(trustedSource).poll());
     }
 
     public ArrayList<Stack<String>> findCorruptChunks(String metaFile) {
-        return null;
-    }
+        Queue<String> hashMeta = FileHandler.readAndParseLines(metaFile);
 
-    private void createMT() {
+        Queue<Node> metaQueue = new LinkedList<>();
+        Queue<Node> hashQueue = new LinkedList<>();
+        Queue<Node> startDetector = new LinkedList<>();
 
-        Queue<String> chunksPaths = this.readAndParseLines(this.chunksPath);
+        hashQueue.add(this.root);
 
-        Queue<Node> hashedChunks = new LinkedList<>();
+        ArrayList<Stack<String>> corruptChunks = new ArrayList<>();
 
-        while(chunksPaths.size() > 0) {
-            hashedChunks.add(new Node(this.hashFile(chunksPaths.poll())));
+        int i = 0;
+
+        while (!hashQueue.isEmpty()) {
+
+            Node node = hashQueue.poll();
+            Node compareNode = metaQueue.poll();
+
+            if (!node.getData().equals(compareNode.getData())) {
+
+                if (corruptChunks.get(i) != null) {
+
+                    corruptChunks.get(i).add(node.getData());
+                } else {
+                    Stack<String> addStack = new Stack<>();
+
+                    addStack.add(node.getData());
+
+                    corruptChunks.add(i, addStack);
+                }
+
+                if (node.getLeft() != null) {
+                    startDetector.add(node.getLeft());
+                    metaQueue.add(compareNode.getLeft());
+                }
+                if (node.getRight() != null) {
+                    startDetector.add(node.getRight());
+                    metaQueue.add(compareNode.getRight());
+                }
+
+                i++;
+            }
+
+
+            if (hashQueue.isEmpty() && !startDetector.isEmpty()) {
+                hashQueue = new LinkedList<>(startDetector);
+                startDetector.clear();
+                i = 0;
+            }
         }
 
-        this.root = this.aggregateNodes(hashedChunks);
+        return corruptChunks;
     }
 
     private Node aggregateNodes(Queue<Node> hashNodes) {
@@ -70,13 +101,13 @@ public class MerkleTree {
         do {
             aggregatedNodes.clear();
 
-            while(hashNodes.size() > 0) {
+            while (hashNodes.size() > 0) {
 
                 Node firstNode = hashNodes.poll();
 
                 Node secondNode = hashNodes.poll();
 
-                Node parentNode = new Node(this.concatenateHashNodes(firstNode, secondNode));
+                Node parentNode = new Node(this.concatHashNodes(firstNode, secondNode));
 
                 aggregatedNodes.add(parentNode);
 
@@ -91,7 +122,7 @@ public class MerkleTree {
         return aggregatedNodes.poll();
     }
 
-    private String concatenateHashNodes(Node firstHash, Node secondHash) {
+    private String concatHashNodes(Node firstHash, Node secondHash) {
 
         try {
             String firstString = (firstHash != null) ? firstHash.getData() : "";
@@ -99,61 +130,41 @@ public class MerkleTree {
             String secondString = (secondHash != null) ? secondHash.getData() : "";
 
             return HashGeneration.generateSHA256(firstString + secondString);
-        }
-        catch (NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException e) {
             System.out.print("NoSuchAlgorithmException");
-        }
-        catch (UnsupportedEncodingException e) {
+        } catch (UnsupportedEncodingException e) {
             System.out.print("UnsupportedEncodingException");
         }
 
         return "";
     }
 
-    private Queue<String> readAndParseLines(String path) {
-
-        BufferedReader reader = this.readFile(path);
-
-        Queue<String> paths = new LinkedList<>();
-
-        if(reader == null) {
-            return paths;
-        }
-
-        try {
-            for(String line; (line = reader.readLine()) != null;) {
-                paths.add(line);
-            }
-        }
-
-        catch (IOException e) {
-            System.out.println("While reading opening file an error occured");
-        }
-
-        return paths;
-    }
-
-    private String hashFile(String path) {
-
-        try {
-            return HashGeneration.generateSHA256(new File(path));
-        } catch (IOException e) {
-            System.out.print("File cannot be read");
-        } catch (NoSuchAlgorithmException e) {
-            System.out.print("No such algorithm");
-        }
-
-        return "";
-    }
-
-    private BufferedReader readFile(String path) {
-        try {
-            return new BufferedReader(new FileReader(path));
-        }
-        catch (FileNotFoundException e) {
-            System.out.print("File not found");
-        }
-
-        return null;
-    }
+//    private Node convertQueueToBFS(Queue<String> queue) {
+//
+//        Node parent = new Node(queue.poll());
+//
+//        Queue<Node> convertQueue = new LinkedList<>();
+//
+//        convertQueue.add(parent);
+//
+//        while(!convertQueue.isEmpty()) {
+//            Node node = convertQueue.poll();
+//
+//            String string = queue.poll();
+//
+//            if(string != null) {
+//                node.setChildren(new Node(string), new Node(queue.poll()));
+//            }
+//
+//            if(node.getLeft() != null) {
+//                convertQueue.add(node.getLeft());
+//            }
+//
+//            if(node.getRight() != null) {
+//                convertQueue.add(node.getRight());
+//            }
+//        }
+//
+//        return parent;
+//    }
 }
