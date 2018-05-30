@@ -42,47 +42,31 @@ public class MerkleTree {
     }
 
     public ArrayList<Stack<String>> findCorruptChunks(String metaFile) {
-        LinkedList<String> hashMeta = FileHandler.readAndParseLines(metaFile);
-        Node parent = this.convertLinkedListToBFS(hashMeta);
-        Queue<Node> searchQueue = new LinkedList<>();
-        Queue<Node> startDetector = new LinkedList<>();
+        Node metaParent = this.convertLinkedListToBFS(FileHandler.readAndParseLines(metaFile));
+        Queue<Node> treeQueue = new LinkedList<>();
+        Queue<Node> metaQueue = new LinkedList<>();
+        Queue<Node> startQueue = new LinkedList<>();
 
         ArrayList<Stack<String>> corruptChunks = new ArrayList<>();
-        ArrayList<Integer> searchMetaIndexes = new ArrayList<>();
 
-        searchMetaIndexes.add(0);
-
-        if(!this.checkAuthenticity(metaFile)) {
-
-            Stack<String> first = new Stack<>();
-            first.add(this.root.getData());
-            corruptChunks.add(first);
-
-            if(this.root.getLeft() != null) {
-                searchQueue.add(this.root.getLeft());
-                searchMetaIndexes.add(1);
-            }
-            if(this.root.getRight() != null) {
-                searchQueue.add(this.root.getRight());
-                searchMetaIndexes.add(2);
-            }
-        } else {
-            return corruptChunks;
+        if(this.root.getData().equals(metaParent.getData())) {
+           return corruptChunks;
         }
+        treeQueue.add(this.root);
+        metaQueue.add(metaParent);
 
+        corruptChunks.add(new Stack<>());
 
-        int elementTraversed = 1, metaSize = hashMeta.size(), levelElementTraversed = 0, level = 1;
+        int level = 0, levelElementTraversed = 0;
 
-        while(searchQueue.size() > 0 && hashMeta.size() > 0) {
-            Node node = searchQueue.poll();
+        while(treeQueue.size() > 0 && metaQueue.size() > 0) {
 
-            int currentIndex = searchMetaIndexes.get(elementTraversed);
+            Node node = treeQueue.poll();
+            Node meta = metaQueue.poll();
 
-            while(hashMeta.size() + currentIndex > metaSize && hashMeta.size() > 0)
-                hashMeta.poll();
-            String polled = hashMeta.poll();
-            if(!node.getData().equals(polled)) {
+            if(!node.getData().equals(meta.getData())) {
                 Stack<String> chunk = corruptChunks.get(levelElementTraversed/2);
+
                 //Right Node
                 if(chunk.size() > level) {
                     Stack<String> copy = (Stack) chunk.clone();
@@ -97,31 +81,26 @@ public class MerkleTree {
                     chunk.add(node.getData());
                 }
 
-                int power = (int) Math.pow(2, level);
-                int nodeNumber = currentIndex - (power - 1);
-                int childNodeNumber = currentIndex + (power - 1 - nodeNumber) + nodeNumber * 2 + 1;
-
-                if(node.getLeft() != null) {
-                    searchMetaIndexes.add(childNodeNumber);
-                    startDetector.add(node.getLeft());
+                if(node.getLeft() != null && meta.getLeft() != null) {
+                    startQueue.add(node.getLeft());
+                    metaQueue.add(meta.getLeft());
                 }
-
-                if(node.getRight() != null) {
-                    searchMetaIndexes.add(childNodeNumber + 1);
-                    startDetector.add(node.getRight());
+                if(node.getRight() != null && meta.getRight() != null) {
+                    startQueue.add(node.getRight());
+                    metaQueue.add(meta.getRight());
                 }
             }
 
-            elementTraversed++;
             levelElementTraversed++;
-            //a new level start detecting
-            if (searchQueue.isEmpty() && !startDetector.isEmpty()) {
-                searchQueue = startDetector;
-                startDetector = new LinkedList<>();
+
+            if(treeQueue.isEmpty() && !startQueue.isEmpty()) {
+                treeQueue = startQueue;
+                startQueue = new LinkedList<>();
                 level++;
                 levelElementTraversed = 0;
             }
         }
+
         return corruptChunks;
     }
 
@@ -175,18 +154,18 @@ public class MerkleTree {
         Queue<Node> queue = new LinkedList<>();
         Queue<Node> track = new LinkedList<>();
 
-        if(listSize % 2 == 1)
+        if (listSize % 2 == 1)
             queue.add(null);
 
-        for(int i = 0; i < this.leavesSize; i++) {
+        for (int i = 0; i < this.leavesSize; i++) {
             queue.add(new Node(list.removeLast()));
         }
 
-        while(list.size() > 0) {
-            if(queue.size() / 2 % 2 == 1 && list.size() > 1) {
+        while (list.size() > 0) {
+            if (queue.size() / 2 % 2 == 1 && list.size() > 1) {
                 track.add(null);
             }
-             while(queue.size() > 0) {
+            while (queue.size() > 0) {
                 Node node = new Node(list.removeLast());
 
                 Node polled = queue.poll();
