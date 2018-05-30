@@ -40,7 +40,7 @@ public class FileHandler {
 
             Node node = new Node(hashFileInThePath(path));
 
-            node.setChildren(new Node(path), new Node(path));
+            node.setChildren(new Node(path), null);
 
             hashedChunks.add(node);
         }
