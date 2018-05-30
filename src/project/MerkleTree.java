@@ -43,7 +43,6 @@ public class MerkleTree {
     public ArrayList<Stack<String>> findCorruptChunks(String metaFile) {
         Queue<String> hashMeta = FileHandler.readAndParseLines(metaFile);
 
-        Queue<Node> metaQueue = new LinkedList<>();
         Queue<Node> hashQueue = new LinkedList<>();
         Queue<Node> startDetector = new LinkedList<>();
 
@@ -51,43 +50,42 @@ public class MerkleTree {
 
         ArrayList<Stack<String>> corruptChunks = new ArrayList<>();
 
-        int i = 0;
+        int currentElement = 0, metaSize = hashMeta.size(), level = 0;
 
         while (!hashQueue.isEmpty()) {
 
+            while(hashMeta.size() + currentElement <= metaSize) {
+                hashMeta.poll();
+            }
             Node node = hashQueue.poll();
-            Node compareNode = metaQueue.poll();
+            String compateString = hashMeta.poll();
 
-            if (!node.getData().equals(compareNode.getData())) {
+            if (!node.getData().equals(compateString)) {
 
-                if (corruptChunks.get(i) != null) {
+                if (corruptChunks.get(0) != null) {
 
-                    corruptChunks.get(i).add(node.getData());
+                    corruptChunks.get(0).add(node.getData());
                 } else {
                     Stack<String> addStack = new Stack<>();
 
                     addStack.add(node.getData());
 
-                    corruptChunks.add(i, addStack);
+                    corruptChunks.add(0, addStack);
                 }
 
                 if (node.getLeft() != null) {
                     startDetector.add(node.getLeft());
-                    metaQueue.add(compareNode.getLeft());
                 }
                 if (node.getRight() != null) {
                     startDetector.add(node.getRight());
-                    metaQueue.add(compareNode.getRight());
                 }
 
-                i++;
             }
 
 
             if (hashQueue.isEmpty() && !startDetector.isEmpty()) {
                 hashQueue = new LinkedList<>(startDetector);
                 startDetector.clear();
-                i = 0;
             }
         }
 

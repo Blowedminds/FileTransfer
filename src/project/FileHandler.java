@@ -30,20 +30,6 @@ public class FileHandler {
         return paths;
     }
 
-    public static String hashFileInThePath(String path) {
-
-        try {
-            return HashGeneration.generateSHA256(new File(path));
-        } catch (IOException e) {
-            System.out.print("File cannot be read");
-        } catch (NoSuchAlgorithmException e) {
-            System.out.print("No such algorithm");
-        }
-
-        return "";
-    }
-
-
     public static Queue<Node> hashFiles(Queue<String> chunksPaths) {
 
         Queue<Node> hashedChunks = new LinkedList<>();
@@ -62,7 +48,20 @@ public class FileHandler {
         return hashedChunks;
     }
 
-    public static BufferedReader readFile(String path) {
+    private static String hashFileInThePath(String path) {
+
+        try {
+            return HashGeneration.generateSHA256(new File(path));
+        } catch (IOException e) {
+            System.out.print("File cannot be read");
+        } catch (NoSuchAlgorithmException e) {
+            System.out.print("No such algorithm");
+        }
+
+        return "";
+    }
+
+    private static BufferedReader readFile(String path) {
         try {
             return new BufferedReader(new FileReader(path));
         } catch (FileNotFoundException e) {

@@ -10,11 +10,11 @@ public class Main {
 	public static void main(String[] args){
 
 		
-		MerkleTree m0 = new MerkleTree("data/2.txt");
+		MerkleTree m0 = new MerkleTree("data/1_bad.txt");
 		String hash = m0.getRoot().getLeft().getRight().getData();
 		System.out.println(hash);
 
-		boolean valid = m0.checkAuthenticity("data/2meta.txt");
+		boolean valid = m0.checkAuthenticity("data/1.txt");
 		System.out.println(valid);
 
 		// The following just is an example for you to see the usage.
