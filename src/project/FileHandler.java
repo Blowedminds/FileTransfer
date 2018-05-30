@@ -9,11 +9,11 @@ import java.util.Queue;
 
 public class FileHandler {
 
-    public static Queue<String> readAndParseLines(String path) {
+    public static LinkedList<String> readAndParseLines(String path) {
 
         BufferedReader reader = readFile(path);
 
-        Queue<String> paths = new LinkedList<>();
+        LinkedList<String> paths = new LinkedList<>();
 
         if (reader == null) {
             return paths;
@@ -24,15 +24,15 @@ public class FileHandler {
                 paths.add(line);
             }
         } catch (IOException e) {
-            System.out.println("While reading opening file an error occured");
+            System.out.println("While reading opening file an error occurred");
         }
 
         return paths;
     }
 
-    public static Queue<Node> hashFiles(Queue<String> chunksPaths) {
+    public static LinkedList<Node> hashFiles(Queue<String> chunksPaths) {
 
-        Queue<Node> hashedChunks = new LinkedList<>();
+        LinkedList<Node> hashedChunks = new LinkedList<>();
 
         while (!chunksPaths.isEmpty()) {
 

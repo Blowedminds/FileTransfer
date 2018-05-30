@@ -4,16 +4,15 @@ import util.HashGeneration;
 
 import java.io.*;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Stack;
+import java.util.*;
 
 public class MerkleTree {
 
     private String chunksPath;
 
     private Node root;
+
+    private int leavesSize;
 
     public MerkleTree(String path) {
 
@@ -26,9 +25,11 @@ public class MerkleTree {
 
         Queue<String> chunksPaths = FileHandler.readAndParseLines(this.chunksPath);
 
-        Queue<Node> hashedChunks = FileHandler.hashFiles(chunksPaths);
+        this.leavesSize = chunksPaths.size();
 
-        this.root = this.aggregateNodes(hashedChunks);
+        LinkedList<Node> leaves = FileHandler.hashFiles(chunksPaths);
+
+        this.root = this.aggregateNodes(leaves);
     }
 
     public Node getRoot() {
@@ -40,8 +41,9 @@ public class MerkleTree {
         return this.root.getData().equals(FileHandler.readAndParseLines(trustedSource).poll());
     }
 
-    public ArrayList<Stack<String>> findCorruptChunks2(String metaFile) {
-        Queue<String> hashMeta = FileHandler.readAndParseLines(metaFile);
+    public ArrayList<Stack<String>> findCorruptChunks(String metaFile) {
+        LinkedList<String> hashMeta = FileHandler.readAndParseLines(metaFile);
+        Node parent = this.convertLinkedListToBFS(hashMeta);
         Queue<Node> searchQueue = new LinkedList<>();
         Queue<Node> startDetector = new LinkedList<>();
 
@@ -123,58 +125,6 @@ public class MerkleTree {
         return corruptChunks;
     }
 
-    public ArrayList<Stack<String>> findCorruptChunks(String metaFile) {
-        Queue<String> hashMeta = FileHandler.readAndParseLines(metaFile);
-
-        Queue<Node> hashQueue = new LinkedList<>();
-        Queue<Node> startDetector = new LinkedList<>();
-
-        hashQueue.add(this.root);
-
-        ArrayList<Stack<String>> corruptChunks = new ArrayList<>();
-
-        int currentElement = 0, metaSize = hashMeta.size(), level = 0;
-
-        while (!hashQueue.isEmpty()) {
-
-            while(hashMeta.size() + currentElement <= metaSize) {
-                hashMeta.poll();
-            }
-            Node node = hashQueue.poll();
-            String compateString = hashMeta.poll();
-
-            if (!node.getData().equals(compateString)) {
-
-                if (corruptChunks.get(0) != null) {
-
-                    corruptChunks.get(0).add(node.getData());
-                } else {
-                    Stack<String> addStack = new Stack<>();
-
-                    addStack.add(node.getData());
-
-                    corruptChunks.add(0, addStack);
-                }
-
-                if (node.getLeft() != null) {
-                    startDetector.add(node.getLeft());
-                }
-                if (node.getRight() != null) {
-                    startDetector.add(node.getRight());
-                }
-
-            }
-
-
-            if (hashQueue.isEmpty() && !startDetector.isEmpty()) {
-                hashQueue = new LinkedList<>(startDetector);
-                startDetector.clear();
-            }
-        }
-
-        return corruptChunks;
-    }
-
     private Node aggregateNodes(Queue<Node> hashNodes) {
 
         Queue<Node> aggregatedNodes;
@@ -220,32 +170,36 @@ public class MerkleTree {
         return "";
     }
 
-//    private Node convertQueueToBFS(Queue<String> queue) {
-//
-//        Node parent = new Node(queue.poll());
-//
-//        Queue<Node> convertQueue = new LinkedList<>();
-//
-//        convertQueue.add(parent);
-//
-//        while(!convertQueue.isEmpty()) {
-//            Node node = convertQueue.poll();
-//
-//            String string = queue.poll();
-//
-//            if(string != null) {
-//                node.setChildren(new Node(string), new Node(queue.poll()));
-//            }
-//
-//            if(node.getLeft() != null) {
-//                convertQueue.add(node.getLeft());
-//            }
-//
-//            if(node.getRight() != null) {
-//                convertQueue.add(node.getRight());
-//            }
-//        }
-//
-//        return parent;
-//    }
+    private Node convertLinkedListToBFS(LinkedList<String> list) {
+        int listSize = list.size();
+        Queue<Node> queue = new LinkedList<>();
+        Queue<Node> track = new LinkedList<>();
+
+        if(listSize % 2 == 1)
+            queue.add(null);
+
+        for(int i = 0; i < this.leavesSize; i++) {
+            queue.add(new Node(list.removeLast()));
+        }
+
+        while(list.size() > 0) {
+            if(queue.size() / 2 % 2 == 1 && list.size() > 1) {
+                track.add(null);
+            }
+             while(queue.size() > 0) {
+                Node node = new Node(list.removeLast());
+
+                Node polled = queue.poll();
+
+                node.setChildren(queue.poll(), polled);
+
+                track.add(node);
+            }
+
+            queue = track;
+            track = new LinkedList<>();
+        }
+
+        return queue.poll();
+    }
 }
