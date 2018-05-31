@@ -38,7 +38,7 @@ public class MerkleTree {
 
     public boolean checkAuthenticity(String trustedSource) {
 
-        return this.root.getData().equals(FileHandler.readAndParseLines(trustedSource).poll());
+        return this.root.getData().equals(FileHandler.readAndParseLines(trustedSource, 1).poll());
     }
 
     public ArrayList<Stack<String>> findCorruptChunks(String metaFile) {
@@ -152,7 +152,7 @@ public class MerkleTree {
     private Node convertLinkedListToBFS(LinkedList<String> list) {
         int listSize = list.size();
         Queue<Node> queue = new LinkedList<>();
-        Queue<Node> track = new LinkedList<>();
+        Queue<Node> startDetector = new LinkedList<>();
 
         if (listSize % 2 == 1)
             queue.add(null);
@@ -163,7 +163,7 @@ public class MerkleTree {
 
         while (list.size() > 0) {
             if (queue.size() / 2 % 2 == 1 && list.size() > 1) {
-                track.add(null);
+                startDetector.add(null);
             }
             while (queue.size() > 0) {
                 Node node = new Node(list.removeLast());
@@ -172,11 +172,11 @@ public class MerkleTree {
 
                 node.setChildren(queue.poll(), polled);
 
-                track.add(node);
+                startDetector.add(node);
             }
 
-            queue = track;
-            track = new LinkedList<>();
+            queue = startDetector;
+            startDetector = new LinkedList<>();
         }
 
         return queue.poll();

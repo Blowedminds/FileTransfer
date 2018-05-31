@@ -10,6 +10,10 @@ import java.util.Queue;
 public class FileHandler {
 
     public static LinkedList<String> readAndParseLines(String path) {
+        return readAndParseLines(path, -1);
+    }
+
+    public static LinkedList<String> readAndParseLines(String path, int upto) {
 
         BufferedReader reader = readFile(path);
 
@@ -20,11 +24,16 @@ public class FileHandler {
         }
 
         try {
+            int i = 0 ;
             for (String line; (line = reader.readLine()) != null; ) {
+                if(upto != -1 && i >= upto) {
+                    break;
+                }
                 paths.add(line);
+                i++;
             }
         } catch (IOException e) {
-            System.out.println("While reading opening file an error occurred");
+            System.out.println("While opening file an error occurred");
         }
 
         return paths;
