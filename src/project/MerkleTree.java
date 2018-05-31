@@ -8,22 +8,19 @@ import java.util.*;
 
 public class MerkleTree {
 
-    private String chunksPath;
-
     private Node root;
 
     private int leavesSize;
 
     public MerkleTree(String path) {
-
-        this.chunksPath = path;
-
-        this.createMT();
+        this(FileHandler.readAndParseLines(path));
     }
 
-    private void createMT() {
+    public MerkleTree(Queue<String> chunksPaths) {
+        this.createMT(chunksPaths);
+    }
 
-        Queue<String> chunksPaths = FileHandler.readAndParseLines(this.chunksPath);
+    private void createMT(Queue<String> chunksPaths) {
 
         this.leavesSize = chunksPaths.size();
 
@@ -154,7 +151,7 @@ public class MerkleTree {
         Queue<Node> queue = new LinkedList<>();
         Queue<Node> startDetector = new LinkedList<>();
 
-        if (listSize % 2 == 1)
+        if (this.leavesSize % 2 == 1)
             queue.add(null);
 
         for (int i = 0; i < this.leavesSize; i++) {
