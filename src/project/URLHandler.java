@@ -12,7 +12,7 @@ import java.nio.channels.ReadableByteChannel;
 public class URLHandler {
     //https://stackoverflow.com/questions/921262/how-to-download-and-save-a-file-from-internet-using-java
     public static String downloadFile(String url, String path) {
-        String fileName = findFileName(url);
+        String fileName = findInString(url, '/', 1);
         try {
             URL connection = new URL(url);
             ReadableByteChannel rbc = Channels.newChannel(connection.openStream());
@@ -36,16 +36,21 @@ public class URLHandler {
         return path + fileName;
     }
 
-    private static String findFileName(String url) {
-        if(url.charAt(url.length() - 1) == '/') {
+    public static String findInString(String url, char toBreak, int k) {
+        return findInString(url, toBreak, k, false);
+    }
+
+    public static String findInString(String url, char toBreak, int k, boolean reverse) {
+        if(url.charAt(url.length() - 1) == toBreak) {
             return "";
         }
 
-        int i;
+        int i, j = 0;
         for(i = url.length() - 1; i > 0; i--) {
-            if(url.charAt(i) == '/') break;
+            if(url.charAt(i) == toBreak) j++;
+            if(j == k) break;
         }
 
-        return url.substring(i + 1, url.length());
+        return reverse ? url.substring(0, i) : url.substring(i + 1, url.length());
     }
 }

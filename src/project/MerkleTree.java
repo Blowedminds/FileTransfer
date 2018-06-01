@@ -34,7 +34,6 @@ public class MerkleTree {
     }
 
     public boolean checkAuthenticity(String trustedSource) {
-
         return this.root.getData().equals(FileHandler.readAndParseLines(trustedSource, 1).poll());
     }
 
@@ -177,5 +176,53 @@ public class MerkleTree {
         }
 
         return queue.poll();
+    }
+
+    public String findCorruptPaths(Stack<String> stack) {
+        Queue<String> queue = new LinkedList<>();
+        for(String string: stack) {
+            queue.add(string);
+        }
+
+        return this.findNode(queue).getLeft().getData();
+    }
+
+    private Node findNode(Queue<String> queue) {
+        Queue<Node> searchQueue = new LinkedList<>();
+
+        if(!this.checkNodeHash(this.root, queue.poll())) {
+            return null;
+        }
+        searchQueue.add(this.root.getLeft());
+        searchQueue.add(this.root.getRight());
+
+        while(!queue.isEmpty() && !searchQueue.isEmpty()) {
+
+            Node nodeLeft = searchQueue.poll();
+            Node nodeRight = searchQueue.poll();
+
+            String hash = queue.poll();
+
+            if(this.checkNodeHash(nodeLeft, hash)) {
+                if(queue.isEmpty()) {
+                    return nodeLeft;
+                }
+                searchQueue.add(nodeLeft.getLeft());
+                searchQueue.add(nodeLeft.getRight());
+            } else if(this.checkNodeHash(nodeRight, hash)) {
+                if(queue.isEmpty()) {
+                    return nodeRight;
+                }
+                searchQueue.add(nodeRight.getLeft());
+                searchQueue.add(nodeRight.getRight());
+            }
+
+        }
+
+        return searchQueue.poll();
+    }
+
+    private boolean checkNodeHash(Node a, String hash) {
+        return a != null && a.getData().equals(hash);
     }
 }

@@ -15,29 +15,29 @@ public class Main {
     public static void main(String[] args) {
 
 
-//        MerkleTree m0 = new MerkleTree("data/9.txt");
-//        String hash = m0.getRoot().getLeft().getRight().getData();
-//        System.out.println(hash);
-//
-//        boolean valid = m0.checkAuthenticity("data/9meta.txt");
-//        System.out.println(valid);
-//
-//        // The following just is an example for you to see the usage.
-//        // Although there is none in reality, assume that there are two corrupt chunks in this example.
-//        ArrayList<Stack<String>> corrupts = m0.findCorruptChunks("data/9meta.txt");
-//        System.out.println(corrupts.size());
+        MerkleTree m0 = new MerkleTree("secondaryPart/data/8local.txt");
+        String hash = m0.getRoot().getLeft().getRight().getData();
+        System.out.println(hash);
+
+        boolean valid = m0.checkAuthenticity("secondaryPart/data/8meta.txt");
+        System.out.println(valid);
+
+        // The following just is an example for you to see the usage.
+        // Although there is none in reality, assume that there are two corrupt chunks in this example.
+        ArrayList<Stack<String>> corrupts = m0.findCorruptChunks("secondaryPart/data/8meta.txt");
+        System.out.println(corrupts.size());
 //        System.out.println("Corrupt hash of first corrupt chunk is: " + corrupts.get(0).pop());
 //        System.out.println("Corrupt hash of second corrupt chunk is: " + corrupts.get(1).pop());
 
-		download("secondaryPart/data/download_from_trusted.txt");
+//		download("secondaryPart/data/download_from_trusted.txt");
 
     }
 
-    public static void download(String torrentPath) {
+    public static void download(String torrentsPath) {
         //extract torrent data
-        Queue<String> torrentData = FileHandler.readAndParseLines(torrentPath);
+        Queue<String> torrentsData = FileHandler.readAndParseLines(torrentsPath);
 
-        ArrayList<String[]> torrents = divideTorrents(torrentData);
+        ArrayList<String[]> torrents = divideTorrents(torrentsData);
 
         //work on torrents individually
         for(String[] torrent: torrents){
@@ -72,15 +72,16 @@ public class Main {
     public static boolean handleTorrent(String[] torrentData) {
 
         String path = "secondaryPart/data/";
-
+        //BUG:
         String torrentNumber = torrentData[1].substring(torrentData[1].length() - 5, torrentData[1].length() - 4);
 
         Queue<String> filesUrl = FileHandler.readAndParseLines(URLHandler.downloadFile(torrentData[1], path));
         String trustedSourceMeta = URLHandler.downloadFile(torrentData[0], path);
+        String alternateSource = URLHandler.downloadFile(torrentData[2], path);
 
         Torrent torrent = new Torrent(trustedSourceMeta, filesUrl, path + "split/" + torrentNumber + "/");
 
-        if(!torrent.processDownload(torrentData[2])) {
+        if(!torrent.processDownload(alternateSource)) {
             return false;
         }
 

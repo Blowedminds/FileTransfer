@@ -62,9 +62,9 @@ public class FileHandler {
         try {
             return HashGeneration.generateSHA256(new File(path));
         } catch (IOException e) {
-            System.out.print("File cannot be read");
+            System.out.println("File cannot be read");
         } catch (NoSuchAlgorithmException e) {
-            System.out.print("No such algorithm");
+            System.out.println("No such algorithm");
         }
 
         return "";
@@ -74,7 +74,7 @@ public class FileHandler {
         try {
             return new BufferedReader(new FileReader(path));
         } catch (FileNotFoundException e) {
-            System.out.print("File not found");
+            System.out.println("File not found: " + path);
         }
 
         return null;
